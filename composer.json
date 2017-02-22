@@ -1,0 +1,22 @@
+{
+  "name": "olegtytarenko/morfers",
+  "license": "",
+  "type": "library",
+  "description": "Client Libery for morfers languages",
+  "keywords": ["morfers"],
+  "require": {
+    "php": ">=5.4"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "~4"
+  },
+  "autoload": {
+    "psr-0": {
+      "Morfer_": "src/"
+    },
+    "classmap": [
+      "src/"
+    ]
+  }
+
+}

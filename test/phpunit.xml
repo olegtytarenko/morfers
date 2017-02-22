@@ -1,0 +1,11 @@
+<phpunit
+        colors="true"
+        bootstrap="bootstrap.php"
+        mapTestClassNameToConveredClassName="true"
+>
+    <testsuites>
+        <testsuite name="Kind Test">
+            <directory sufix="Test.php" phpVersion="5.6.0">Kind</directory>
+        </testsuite>
+    </testsuites>
+</phpunit>
