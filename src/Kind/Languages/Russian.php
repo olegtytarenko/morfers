@@ -29,31 +29,32 @@ class Russian extends Kind
     ];
 
     protected $_number_text = [
-        0       =>   'ноль',
-        1       =>   ['один', 'одна'],
-        2       =>   ['два', 'две'],
-        3       =>   'три',
-        4       =>   ['четыре', 'четыри'],
-        5       =>   'пять',
-        6       =>   'шесть',
-        7       =>   'семь',
-        8       =>   'восемь',
-        9       =>   'девять',
-        10      =>   'десять',
-        11      =>   '[:number]надцать',
-        20      =>   '[:number]дцать [:subnumber]',
-        40      =>   'сорок [:subnumber]',
-        50      =>   '[:number]десят [:subnumber]',
-        90      =>   'девяносто [:subnumber]',
-        100     =>   'сто [:subnumber]',
-        200     =>   'двести [:subnumber]',
-        300     =>   '[:number]ста [:subnumber]',
-        500     =>   '[:number]сот [:subnumber]',
-        1000    =>   '[:number:two] тысяча',
-        5000    =>   '[:number] тысяч',
-        1000000 =>   '[:number] миллион',
-        2000000 =>   '[:number] миллиона',
-        5000000 =>   '[:number] миллионов',
+        0 => 'ноль',
+        1 => ['один', 'одна'],
+        2 => ['два', 'две'],
+        3 => 'три',
+        4 => ['четыре', 'четыри'],
+        5 => 'пять',
+        6 => 'шесть',
+        7 => 'семь',
+        8 => 'восемь',
+        9 => 'девять',
+        10 => 'десять',
+        11 => '[:number]надцать',
+        20 => '[:number]дцать [:subnumber]',
+        40 => 'сорок [:subnumber]',
+        50 => '[:number]десят [:subnumber]',
+        90 => 'девяносто [:subnumber]',
+        100 => 'сто [:subnumber]',
+        200 => 'двести [:subnumber]',
+        300 => '[:number]ста [:subnumber]',
+        500 => '[:number]сот [:subnumber]',
+        1000 => '[:number:two] тысяча [:subnumber]',
+        2000 => '[:number:two] тысячи [:subnumber]',
+        5000 => '[:number] тысяч [:subnumber]',
+        1000000 => '[:number] миллион [:subnumber]',
+        2000000 => '[:number] миллиона [:subnumber]',
+        5000000 => '[:number] миллионов [:subnumber]',
     ];
 
 
@@ -86,7 +87,7 @@ class Russian extends Kind
             $threeLastLetters = $listsChars[count($listsChars) - 3];
             $lastLetter = $listsChars[count($listsChars) - 1];
 
-            if(in_array($twoLastLetters_four, ['енок', 'ёнок', 'онок'])) {
+            if (in_array($twoLastLetters_four, ['енок', 'ёнок', 'онок'])) {
                 return true;
             }
 
@@ -104,11 +105,11 @@ class Russian extends Kind
                 $notSuffix = !in_array($threeLastLetters . $consonantLetter, ['ал', 'ад', 'ат', 'ер', 'еп', 'ов']);
                 $haveSuffix = in_array($threeLastLetters . $consonantLetter, ['ин', 'ош', 'шк', 'ап', 'яд']);
 
-                if($lastLetter == 'ь' && $haveLetter && $haveLastLetter && $notSuffix) {
+                if ($lastLetter == 'ь' && $haveLetter && $haveLastLetter && $notSuffix) {
                     return $threeLastLetters . $consonantLetter . 'ь';
                 } elseif (in_array($lastLetter, ['а', 'я']) && $haveSuffix) {
                     return $threeLastLetters . $consonantLetter . $lastLetter;
-                }  else {
+                } else {
                     return false;
                 }
             }, $this->_consonantLetters), $lettersEnd, $this->_consonantLetters);
@@ -119,11 +120,11 @@ class Russian extends Kind
             }));
 
 
-            if(in_array($twoLastLetters_three, $lettersEnd)) {
+            if (in_array($twoLastLetters_three, $lettersEnd)) {
                 return true;
             }
 
-            if(in_array($twoLastLetters, $lettersEnd)) {
+            if (in_array($twoLastLetters, $lettersEnd)) {
                 return true;
             }
 
@@ -145,7 +146,7 @@ class Russian extends Kind
         $listsChars = \Letter::str_split_utf8($this->_wordInit, true);
         if (count($listsChars) > 0) {
             $twoLastLetters = implode('', [$listsChars[count($listsChars) - 2], $listsChars[count($listsChars) - 1]]);
-            if($twoLastLetters == 'мя') {
+            if ($twoLastLetters == 'мя') {
                 return true;
             }
             return in_array($listsChars[count($listsChars) - 1], $lettersEnd);
@@ -164,40 +165,121 @@ class Russian extends Kind
         $isMinus = false;
         $returnNumber = null;
 
-        if($number < 0) {
+        if ($number < 0) {
             $number = $number * -1;
             $isMinus = true;
         }
 
-        if($number < 11) {
+        if ($number < 11) {
             $getNumber = $this->_number_text[$number];
-            if(is_array($getNumber)) {
+            if (is_array($getNumber)) {
                 $returnNumber = $getNumber[0];
             } else {
                 $returnNumber = $getNumber;
             }
         }
 
-        if($number > 10 && $number < 20) {
+        if ($number > 10 && $number < 20) {
             $lastNumber = $number % 10;
             $getNumber = $this->_number_text[$lastNumber];
-            if(is_array($getNumber)) {
+            if (is_array($getNumber)) {
                 $getNumber = $getNumber[0];
             }
-            if($lastNumber > 5 && $lastNumber < 10) {
+            if ($lastNumber > 5 && $lastNumber < 10) {
                 $getNumber = preg_replace("/ь$/", null, $getNumber);
             }
 
-            $returnNumber = preg_replace('/\[\:number\]/', $getNumber, $this->_number_text[11]);
+            $returnNumber = str_replace('[:number]', $getNumber, $this->_number_text[11]);
         }
 
-        if($number >= 20 && $number < 40) {
+        if ($number >= 20 && $number < 100) {
+            $numbers = explode(',', $number / 10);
+            $firstNumber = $this->_number_text[$numbers[0]];
+            $LastNumber = $numbers[1] != 0 ? $this->_number_text[$numbers[1]] : null;
+            $keyGet = 20;
+            if (is_array($firstNumber)) {
+                $firstNumber = $firstNumber[0];
+            }
+            if (is_array($LastNumber)) {
+                $LastNumber = $LastNumber[0];
+            }
+            if ($number >= 40) {
+                $keyGet = 40;
+            }
+            if ($number >= 50) {
+                $keyGet = 50;
+            }
+            if ($number >= 90 && $number < 100) {
+                $keyGet = 90;
+            }
+            $returnNumber = str_replace(['[:number]', '[:subnumber]'], [$firstNumber, $LastNumber], $this->_number_text[$keyGet]);
+        }
+
+        if ($number >= 100 && $number < 1000) {
+            $LastNumbers = ($number % 100);
+            $firstNumber = ($number / 100) % 10;
+            $twoNumber = null;
+            if ($LastNumbers > 0) {
+                $twoNumber = $this->getTextNumber($LastNumbers);
+            }
+            $keyGet = 100;
+
+            if ($number >= 200) {
+                $keyGet = 200;
+            }
+            if ($number >= 300) {
+                $keyGet = 300;
+            }
+
+            if ($number >= 500) {
+                $keyGet = 500;
+            }
+
+            if (in_array($keyGet, [200, 100])) {
+                $firstNumber = null;
+            }
+
+            if ($firstNumber) {
+                $firstNumber = $this->_number_text[$firstNumber];
+                if (is_array($firstNumber)) {
+                    $firstNumber = $firstNumber[0];
+                }
+            }
+            $returnNumber = str_replace(['[:number]', '[:subnumber]'], [$firstNumber, $twoNumber], $this->_number_text[$keyGet]);
+        }
+
+        if ($number >= 1000 && $number < pow(10, 6)) {
+            $numberTwo = $Number = null;
+            if (($number % 10 == 1 || $number % 100 == 1 || $number % 1000 == 1) && ($number % 100 != 11 || $number % 1000 != 11)) {
+                $keyGet = 1000;
+            } elseif (
+                $number % 10 >= 2 && $number % 10 <= 4
+                || ($number % 100 < 10 || $number % 100 >= 20) && ($number % 1000 < 10 || $number % 1000 >= 20)
+            ) {
+                $keyGet = 2000;
+            } else {
+                $keyGet = 5000;
+            }
+
+            $numberFirst = ($number / 1000);
+            if ($numberFirst > 10) {
+                $Number = $numberTwo = $this->getTextNumber($numberFirst % 1000);
+            } else {
+                $Number = $this->_number_text[$numberFirst];
+                if (is_array($Number)) {
+                    $numberTwo = $Number[1];
+                    $Number = $Number[0];
+                }
+            }
+
+
+            $twoNumber = $this->getTextNumber($number % 1000);
+            $returnNumber = str_replace(['[:number]', '[:number:two]', '[:subnumber]'], [$Number, $numberTwo, $twoNumber], $this->_number_text[$keyGet]);
 
         }
 
 
-
-        if($isMinus) {
+        if ($isMinus) {
             return "минус {$returnNumber}";
         } else {
             return "{$returnNumber}";
