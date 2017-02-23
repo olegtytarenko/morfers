@@ -160,25 +160,32 @@ class Russian extends Kind
      * @param bool $isInteger
      * @return null|string
      */
-    protected function getTextNumber($number, $isInteger = true)
+    protected function getTextNumber($number, $isInteger = false)
     {
         $isMinus = false;
         $returnNumber = null;
+        $floatEnd = null;
+        $returnText = null;
+        if(is_float($number)) {
+            $floatEnd = explode(',', $number)[1];
+        }
 
         if ($number < 0) {
             $number = $number * -1;
             $isMinus = true;
         }
-
+        $keyNumberArray = 0;
+        if($isInteger) {
+            $keyNumberArray = 1;
+        }
         if ($number < 11) {
             $getNumber = $this->_number_text[$number];
             if (is_array($getNumber)) {
-                $returnNumber = $getNumber[0];
+                $returnNumber = $getNumber[$keyNumberArray];
             } else {
                 $returnNumber = $getNumber;
             }
         }
-
         if ($number > 10 && $number < 20) {
             $lastNumber = $number % 10;
             $getNumber = $this->_number_text[$lastNumber];
@@ -191,17 +198,16 @@ class Russian extends Kind
 
             $returnNumber = str_replace('[:number]', $getNumber, $this->_number_text[11]);
         }
-
         if ($number >= 20 && $number < 100) {
             $numbers = explode(',', $number / 10);
             $firstNumber = $this->_number_text[$numbers[0]];
             $LastNumber = $numbers[1] != 0 ? $this->_number_text[$numbers[1]] : null;
             $keyGet = 20;
             if (is_array($firstNumber)) {
-                $firstNumber = $firstNumber[0];
+                $firstNumber = $firstNumber[$keyNumberArray];
             }
             if (is_array($LastNumber)) {
-                $LastNumber = $LastNumber[0];
+                $LastNumber = $LastNumber[$keyNumberArray];
             }
             if ($number >= 40) {
                 $keyGet = 40;
@@ -214,7 +220,6 @@ class Russian extends Kind
             }
             $returnNumber = str_replace(['[:number]', '[:subnumber]'], [$firstNumber, $LastNumber], $this->_number_text[$keyGet]);
         }
-
         if ($number >= 100 && $number < 1000) {
             $LastNumbers = ($number % 100);
             $firstNumber = ($number / 100) % 10;
@@ -247,23 +252,22 @@ class Russian extends Kind
             }
             $returnNumber = str_replace(['[:number]', '[:subnumber]'], [$firstNumber, $twoNumber], $this->_number_text[$keyGet]);
         }
-
         if ($number >= 1000 && $number < pow(10, 6)) {
             $numberTwo = $Number = null;
-            if (($number % 10 == 1 || $number % 100 == 1 || $number % 1000 == 1) && ($number % 100 != 11 || $number % 1000 != 11)) {
+            $numberFirst = ($number / 1000);
+            if(($numberFirst % 10 == 1 || $numberFirst % 100 == 1) && $numberFirst % 100 != 11) {
                 $keyGet = 1000;
             } elseif (
-                $number % 10 >= 2 && $number % 10 <= 4
-                || ($number % 100 < 10 || $number % 100 >= 20) && ($number % 1000 < 10 || $number % 1000 >= 20)
+                (($numberFirst % 10 >= 2 || $numberFirst % 100 >= 2) && ($numberFirst % 10 <= 4 || $numberFirst % 100 <= 4 )) &&
+                (($numberFirst % 10 < 10 || $numberFirst % 100 < 10) && ($numberFirst % 100 != 11) && ($numberFirst % 10 >= 20 || $numberFirst % 100 >= 20))
             ) {
                 $keyGet = 2000;
             } else {
                 $keyGet = 5000;
             }
 
-            $numberFirst = ($number / 1000);
             if ($numberFirst > 10) {
-                $Number = $numberTwo = $this->getTextNumber($numberFirst % 1000);
+                $Number = $numberTwo = $this->getTextNumber($numberFirst % 1000, $numberFirst % 10 == 1);
             } else {
                 $Number = $this->_number_text[$numberFirst];
                 if (is_array($Number)) {
@@ -277,12 +281,21 @@ class Russian extends Kind
             $returnNumber = str_replace(['[:number]', '[:number:two]', '[:subnumber]'], [$Number, $numberTwo, $twoNumber], $this->_number_text[$keyGet]);
 
         }
+        if($number >= pow(10, 6)) {
+
+        }
 
 
         if ($isMinus) {
-            return "минус {$returnNumber}";
+            $returnText = "минус {$returnNumber}";
         } else {
-            return "{$returnNumber}";
+            $returnText = "{$returnNumber}";
         }
+
+        if($floatEnd) {
+            $returnText .= ', ' . $floatEnd;
+        }
+
+        return $returnText;
     }
 }

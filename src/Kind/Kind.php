@@ -91,18 +91,7 @@ abstract class Kind
             return null;
         }
 
-        $number = null;
-        $isInteger = $isFloat = false;
-
-        if(($this->_wordInit % 10) == 0) {
-            $number = (int) $this->_wordInit;
-            $isInteger = true;
-        } else {
-            $number = (float) $this->_wordInit;
-            $isFloat = true;
-        }
-
-        return $this->getTextNumber($number, $isInteger);
+        return $this->getTextNumber($this->_wordInit);
     }
 
 

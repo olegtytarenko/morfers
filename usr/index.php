@@ -12,6 +12,7 @@ $dirSrc = __DIR__.DIRECTORY_SEPARATOR.'..'.DIRECTORY_SEPARATOR.'vendor'.DIRECTOR
 if(is_file($dirSrc)) {
     require_once $dirSrc;
 }
-var_dump( (4784 / 1000) % 1000 );
 use Kind\Kind;
-echo Kind::init('Russian', 1784)->numberToText();
+echo Kind::init('Ukranian', 56)->numberToText(), '<br>';
+echo Kind::init('Ukranian', 456878)->numberToText(), '<br>';
+echo Kind::init('Russian', 5456)->numberToText(), '<br>';
