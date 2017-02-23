@@ -12,7 +12,7 @@ $dirSrc = __DIR__.DIRECTORY_SEPARATOR.'..'.DIRECTORY_SEPARATOR.'vendor'.DIRECTOR
 if(is_file($dirSrc)) {
     require_once $dirSrc;
 }
-$lists =  \Declension\Declension::init('Russian', 'Сома Бэй');
+$lists =  \Declension\Declension::init('Russian', 'Эгер');
 
 ?>
 <table>

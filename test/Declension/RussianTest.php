@@ -63,7 +63,6 @@ class RussianTest extends PHPUnit_Framework_TestCase
             ['София','Софии'],
             ['Венгрия','Венгрии'],
             ['Будапешт','Будапешту'],
-//            ['Хайдусобосло','Хайдусобосло'],
             ['Хевиз','Хевизу'],
             ['Эгер','Эгеру'],
             ['Дананг','Данангу'],
@@ -124,7 +123,6 @@ class RussianTest extends PHPUnit_Framework_TestCase
             ['София','Софии'],
             ['Венгрия','Венгрии'],
             ['Будапешт','Будапешта'],
-//            ['Хайдусобосло','Хайдусобосло'],
             ['Хевиз','Хевиза'],
             ['Эгер','Эгера'],
             ['Дананг','Дананга'],
@@ -183,7 +181,6 @@ class RussianTest extends PHPUnit_Framework_TestCase
             ['София','Софию'],
             ['Венгрия','Венгрию'],
             ['Будапешт','Будапешта'],
-            ['Хайдусобосло','Хайдусобосло'],
             ['Хевиз','Хевиз'],
             ['Эгер','Эгера'],
             ['Дананг','Дананга'],
@@ -243,7 +240,6 @@ class RussianTest extends PHPUnit_Framework_TestCase
             ['София','Софией'],
             ['Венгрия','Венгрией'],
             ['Будапешт','Будапештом'],
-            ['Хайдусобосло','Хайдусобосло'],
             ['Хевиз','Хевизом'],
             ['Эгер','Эгером'],
             ['Дананг','Данангом'],
@@ -302,11 +298,38 @@ class RussianTest extends PHPUnit_Framework_TestCase
             ['София','о Софии'],
             ['Венгрия','о Венгрии'],
             ['Будапешт','о Будапеште'],
-            ['Хайдусобосло','о Хайдусобосло'],
             ['Хевиз','о Хевизе'],
             ['Эгер','об Эгере'],
             ['Дананг','о Дананге'],
             ['Фантьет','о Фантьете'],
         ];
+    }
+
+    /**
+     * @test
+     * @dataProvider dataProvider_filesTest()
+     * @param $Nominative
+     * @param $Genitive
+     * @param $Dative
+     * @param $Accusative
+     * @param $Instrumental
+     * @param $Prepositional
+     */
+    public function test_filesTest($Nominative, $Genitive, $Dative, $Accusative, $Instrumental, $Prepositional) {
+        $test = Declension::init('Russian', $Nominative);
+        $this->assertEquals($test->getResult(), [
+            'Nominative' => $Nominative,
+            'Genitive' => $Genitive,
+            'Dative' => $Dative,
+            'Accusative' => $Accusative,
+            'Instrumental' => $Instrumental,
+            'Prepositional' => $Prepositional
+        ], 'Nominative: ' . $Nominative);
+    }
+
+    public function dataProvider_filesTest() {
+        $pathFile = realpath('') . DIRECTORY_SEPARATOR . 'Declension' . DIRECTORY_SEPARATOR . 'morfers_test.json';
+        $lists = json_decode(file_get_contents($pathFile), true);
+        return $lists;
     }
 }
