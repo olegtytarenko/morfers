@@ -282,7 +282,7 @@ class Russian extends Kind
 
         }
         if($number >= pow(10, 6)) {
-
+            // TODO Creates for 10^6 > and mores
         }
 
 

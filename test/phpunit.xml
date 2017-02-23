@@ -7,5 +7,8 @@
         <testsuite name="Kind Test">
             <directory sufix="Test.php" phpVersion="5.6.0">Kind</directory>
         </testsuite>
+        <testsuite name="Declension Test">
+            <directory sufix="Test.php" phpVersion="5.6.0">Declension</directory>
+        </testsuite>
     </testsuites>
 </phpunit>

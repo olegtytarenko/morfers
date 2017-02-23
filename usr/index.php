@@ -12,7 +12,32 @@ $dirSrc = __DIR__.DIRECTORY_SEPARATOR.'..'.DIRECTORY_SEPARATOR.'vendor'.DIRECTOR
 if(is_file($dirSrc)) {
     require_once $dirSrc;
 }
-use Kind\Kind;
-echo Kind::init('Ukranian', 56)->numberToText(), '<br>';
-echo Kind::init('Ukranian', 456878)->numberToText(), '<br>';
-echo Kind::init('Russian', 5456)->numberToText(), '<br>';
+$lists =  \Declension\Declension::init('Russian', 'Сома Бэй');
+
+?>
+<table>
+    <tr>
+        <td>И.</td>
+        <td><?= $lists->getNominative() ?></td>
+    </tr>
+    <tr>
+        <td>Р.</td>
+        <td><?= $lists->getGenitive() ?></td>
+    </tr>
+    <tr>
+        <td>Д.</td>
+        <td><?= $lists->getDative() ?></td>
+    </tr>
+    <tr>
+        <td>В.</td>
+        <td><?= $lists->getAccusative() ?></td>
+    </tr>
+    <tr>
+        <td>Т.</td>
+        <td><?= $lists->getInstrumental() ?></td>
+    </tr>
+    <tr>
+        <td>П.</td>
+        <td><?= $lists->getPrepositional() ?></td>
+    </tr>
+</table>
