@@ -27,6 +27,8 @@ class Russian extends Declension
         'ё', 'е'
     ];
 
+    protected $_letterExclude = ['Интернэшинл'];
+
     /**
      * Именительный - RU    <br>
      * Називний - UA
@@ -42,14 +44,17 @@ class Russian extends Declension
      */
     protected function setGenitive()
     {
-        $words = explode(' ', $this->_wordInput);
-        if (count($words) > 1) {
-            for ($wordSet = [], $i = 0; $i < count($words); $i++) {
-                $wordSet[] = $this->setDeclareWordGenitive(\Letter::str_split_utf8($words[$i]));
-            }
-            $this->Genitive = implode(' ', $wordSet);
+        if (count($this->_words) > 1) {
+            $getThis = &$this;
+            $this->Genitive = implode($this->DelimiterInput, array_map(function ($item) use ($getThis) {
+                return $getThis->setDeclareWordGenitive($item);
+            }, $this->_words));
         } else {
-            $this->Genitive = $this->setDeclareWordGenitive($this->_listsLetters);
+            if($this->DelimiterInput != ' ') {
+                $this->Genitive = $this->setDeclareWordGenitive($this->_words[0]) . $this->DelimiterInput;
+            } else {
+                $this->Genitive = $this->setDeclareWordGenitive($this->_words[0]);
+            }
         }
     }
 
@@ -58,14 +63,19 @@ class Russian extends Declension
         $lastLetter = $listsLetter[count($listsLetter) - 1];
         $twoLetters = implode('', [$listsLetter[count($listsLetter) - 2], $lastLetter]);
         $threLt = null;
-        if(isset($listsLetter[count($listsLetter) - 3])) {
+        $threeLetters = null;
+        if (isset($listsLetter[count($listsLetter) - 3])) {
             $threLt = $listsLetter[count($listsLetter) - 3];
+            $threeLetters = implode('', [$threLt, $twoLetters]);
         }
-        if(in_array($twoLetters, ['би'])) {
+        if (in_array($twoLetters, ['би'])) {
             return implode('', $listsLetter);
         }
         if (in_array($lastLetter, ['а', 'я'])) {
-            if ($lastLetter == 'а') {
+            if(in_array($twoLetters, ['уа'])) {
+                array_pop($listsLetter);
+                $listsLetter[count($listsLetter) - 1] = 'ы';
+            } elseif ($lastLetter == 'а') {
                 if (in_array($twoLetters, ['га', 'ка']) || in_array($listsLetter[count($listsLetter) - 2], ['ж', 'ш', 'х'])) {
                     $listsLetter[count($listsLetter) - 1] = 'и';
                 } else {
@@ -73,20 +83,29 @@ class Russian extends Declension
                 }
             }
             if ($lastLetter == 'я') {
-                $listsLetter[count($listsLetter) - 1] = 'и';
+                if(in_array($twoLetters, ['ья'])) {
+                    array_pop($listsLetter);
+                    $listsLetter[count($listsLetter) - 1] = 'ий';
+                } else {
+                    $listsLetter[count($listsLetter) - 1] = 'и';
+                }
             }
         } elseif ($lastLetter != 'й' && in_array($lastLetter, $this->_consonantLetters)) {
-            if ($threLt != 'ь' && in_array($twoLetters, ['ет', 'ец'])) {
+            if ($threLt != 'ь' && in_array($twoLetters, ['ет', 'ец']) && !in_array($threeLetters, ['лет'])) {
                 unset($listsLetter[count($listsLetter) - 2]);
             }
-            array_push($listsLetter, 'а');
+            if(in_array($twoLetters, ['лл'])) {
+                array_push($listsLetter, 'у');
+            } else {
+                array_push($listsLetter, 'а');
+            }
         } elseif ($lastLetter == 'ь') {
             $items_consonantLetters = $this->_consonantLetters;
             unset($items_consonantLetters[array_search('л', $this->_consonantLetters)]);
             $listsCL = array_map(function ($item) use ($lastLetter) {
                 return $item . $lastLetter;
             }, $items_consonantLetters);
-            if (in_array($twoLetters, $listsCL)) {
+            if (in_array($twoLetters, $listsCL) || in_array($threeLetters, ['ель'])) {
                 $listsLetter[count($listsLetter) - 1] = 'и';
             } else {
                 $listsLetter[count($listsLetter) - 1] = 'я';
@@ -94,16 +113,17 @@ class Russian extends Declension
         } elseif (in_array($lastLetter, ['о', 'й', 'е', 'и'])) {
             if (in_array($twoLetters, ['ло'])) {
                 $listsLetter[count($listsLetter) - 1] = 'а';
-            }
-            if (in_array($twoLetters, ['ий', 'ле', 'ие'])) {
-                $listsLetter[count($listsLetter) - 1] = 'я';
-            }
-
-            if (in_array(implode('', [$listsLetter[count($listsLetter) - 2], $lastLetter]), ['ые'])) {
+            } elseif (in_array($twoLetters, ['ые']) || in_array($threeLetters, ['кие'])) {
                 $listsLetter[count($listsLetter) - 1] = 'х';
-            } elseif (in_array(implode('', [$listsLetter[count($listsLetter) - 2], $lastLetter]), ['ый'])) {
+            } elseif (in_array($twoLetters, ['ий', 'ле', 'ие', 'ай', 'эй'])) {
+                $listsLetter[count($listsLetter) - 1] = 'я';
+            } elseif (in_array($twoLetters, ['ый'])) {
                 $listsLetter[count($listsLetter) - 1] = 'ого';
                 unset($listsLetter[count($listsLetter) - 2]);
+            } elseif (in_array($twoLetters, ['ии'])) {
+                $listsLetter[count($listsLetter) - 1] = 'й';
+            } elseif (in_array($twoLetters, ['ни'])) {
+                $listsLetter[count($listsLetter) - 1] = 'ей';
             } elseif (in_array($lastLetter, ['и'])) {
                 $listsLetter[count($listsLetter) - 1] = 'ов';
             }
@@ -118,14 +138,17 @@ class Russian extends Declension
      */
     protected function setDative()
     {
-        $words = explode(' ', $this->_wordInput);
-        if (count($words) > 1) {
-            for ($wordSet = [], $i = 0; $i < count($words); $i++) {
-                $wordSet[] = $this->setDeclareWordDative(\Letter::str_split_utf8($words[$i]));
-            }
-            $this->Dative = implode(' ', $wordSet);
+        if (count($this->_words) > 1) {
+            $getThis = &$this;
+            $this->Dative = implode($this->DelimiterInput, array_map(function ($item) use ($getThis) {
+                return $getThis->setDeclareWordDative($item);
+            }, $this->_words));
         } else {
-            $this->Dative = $this->setDeclareWordDative($this->_listsLetters);
+            if($this->DelimiterInput != ' ') {
+                $this->Dative = $this->setDeclareWordDative($this->_words[0]) . $this->DelimiterInput;
+            } else {
+                $this->Dative = $this->setDeclareWordDative($this->_words[0]);
+            }
         }
     }
 
@@ -135,32 +158,41 @@ class Russian extends Declension
         $twoLetters = implode('', [$listsLetter[count($listsLetter) - 2], $lastLetter]);
         $letter_a_ya = ['а', 'я'];
         $threLt = null;
-        if(isset($listsLetter[count($listsLetter) - 3])) {
+        $threeLetters = null;
+        if (isset($listsLetter[count($listsLetter) - 3])) {
             $threLt = $listsLetter[count($listsLetter) - 3];
+            $threeLetters = implode('', [$threLt, $twoLetters]);
         }
-        if(in_array($twoLetters, ['би'])) {
+        if (in_array($twoLetters, ['би'])) {
             return implode('', $listsLetter);
         }
         if (in_array($lastLetter, $letter_a_ya)) {
-            if ($lastLetter == 'а') {
+            if(in_array($twoLetters, ['уа'])) {
+                array_pop($listsLetter);
                 $listsLetter[count($listsLetter) - 1] = 'е';
-            } elseif ($twoLetters == 'ля') {
+            } elseif ($lastLetter == 'а' || $twoLetters == 'ля') {
                 $listsLetter[count($listsLetter) - 1] = 'е';
+            } elseif(in_array($twoLetters, ['ья'])) {
+                $listsLetter[] = 'м';
             } else {
                 $listsLetter[count($listsLetter) - 1] = 'и';
             }
         } elseif ($lastLetter != 'й' && in_array($lastLetter, $this->_consonantLetters)) {
-            if ($threLt != 'ь' && in_array($twoLetters, ['ет', 'ец'])) {
+            if ($threLt != 'ь' && in_array($twoLetters, ['ет', 'ец']) && !in_array($threeLetters, ['лет'])) {
                 unset($listsLetter[count($listsLetter) - 2]);
             }
-            array_push($listsLetter, 'у');
+            if(in_array($twoLetters, ['лл'])) {
+                array_push($listsLetter, 'е');
+            } else {
+                array_push($listsLetter, 'у');
+            }
         } elseif ($lastLetter == 'ь') {
             $items_consonantLetters = $this->_consonantLetters;
             unset($items_consonantLetters[array_search('л', $this->_consonantLetters)]);
             $listsCL = array_map(function ($item) use ($lastLetter) {
                 return $item . $lastLetter;
             }, $items_consonantLetters);
-            if (in_array($twoLetters, $listsCL)) {
+            if (in_array($twoLetters, $listsCL) || in_array($threeLetters, ['ель'])) {
                 $listsLetter[count($listsLetter) - 1] = 'и';
             } else {
                 $listsLetter[count($listsLetter) - 1] = 'ю';
@@ -168,15 +200,15 @@ class Russian extends Declension
         } elseif (in_array($lastLetter, ['о', 'й', 'е', 'и'])) {
             if (in_array($twoLetters, ['ло'])) {
                 $listsLetter[count($listsLetter) - 1] = 'у';
-            }
-            if (in_array($twoLetters, ['ий', 'ле', 'ие'])) {
-                $listsLetter[count($listsLetter) - 1] = 'ю';
-            }
-            if (in_array($twoLetters, ['ые'])) {
+            } elseif (in_array($twoLetters, ['ые']) || in_array($threeLetters, ['кие'])) {
                 $listsLetter[count($listsLetter) - 1] = 'м';
+            } elseif (in_array($twoLetters, ['ий', 'ле', 'ие', 'ай', 'эй'])) {
+                $listsLetter[count($listsLetter) - 1] = 'ю';
             } elseif (in_array($twoLetters, ['ый'])) {
                 $listsLetter[count($listsLetter) - 1] = 'ому';
                 unset($listsLetter[count($listsLetter) - 2]);
+            } elseif (in_array($twoLetters, ['ии', 'ни'])) {
+                $listsLetter[count($listsLetter) - 1] = 'ям';
             } elseif (in_array($lastLetter, ['и'])) {
                 $listsLetter[count($listsLetter) - 1] = 'ам';
             }
@@ -191,14 +223,17 @@ class Russian extends Declension
      */
     protected function setAccusative()
     {
-        $words = explode(' ', $this->_wordInput);
-        if (count($words) > 1) {
-            for ($wordSet = [], $i = 0; $i < count($words); $i++) {
-                $wordSet[] = $this->setDeclareWordAccusative(\Letter::str_split_utf8($words[$i]));
-            }
-            $this->Accusative = implode(' ', $wordSet);
+        if (count($this->_words) > 1) {
+            $getThis = &$this;
+            $this->Accusative = implode($this->DelimiterInput, array_map(function ($item) use ($getThis) {
+                return $getThis->setDeclareWordAccusative($item);
+            }, $this->_words));
         } else {
-            $this->Accusative = $this->setDeclareWordAccusative($this->_listsLetters);
+            if($this->DelimiterInput != ' ') {
+                $this->Accusative = $this->setDeclareWordAccusative($this->_words[0]) . $this->DelimiterInput;
+            } else {
+                $this->Accusative = $this->setDeclareWordAccusative($this->_words[0]);
+            }
         }
     }
 
@@ -208,43 +243,45 @@ class Russian extends Declension
         $twoLetters = implode('', [$listsLetter[count($listsLetter) - 2], $lastLetter]);
         $treeLetters = [];
         $tlThree = null;
-        if(isset($listsLetter[count($listsLetter) - 3])) {
+        if (isset($listsLetter[count($listsLetter) - 3])) {
             $treeLetters = implode('', [$listsLetter[count($listsLetter) - 3], $twoLetters]);
             $tlThree = $listsLetter[count($listsLetter) - 3];
         }
 
-        if (in_array($lastLetter, ['а', 'я'])) {
-            if ($lastLetter == 'а') {
+        if (in_array($lastLetter, ['а', 'я']) && !in_array($twoLetters, ['ья'])) {
+            if(in_array($twoLetters, ['уа'])) {
+                array_pop($listsLetter);
+            } elseif ($lastLetter == 'а') {
                 $listsLetter[count($listsLetter) - 1] = 'у';
-            } else {
+            }  else {
                 $listsLetter[count($listsLetter) - 1] = 'ю';
             }
-            $this->Accusative = implode('', $listsLetter);
         } elseif ($lastLetter != 'й' && in_array($lastLetter, $this->_consonantLetters)) {
             if (
-                (!in_array($twoLetters, ['ет', 'пр', 'ег']) && !in_array($treeLetters, ['янг', 'кан', 'жан', 'дин'])) &&
-                (in_array($twoLetters, ['ад', 'йн', 'мм', 'ан', 'ин', 'он']) || in_array($lastLetter, ['с', 'т', 'р', 'г', 'в', 'л']))
+                (!in_array($twoLetters, ['ет', 'пр', 'ег', 'ус', 'ит', 'йх', 'ах', 'дж', 'ис', 'лл', 'са', 'лс', 'ик'])
+                    && !in_array($treeLetters, ['янг', 'кан', 'ана', 'жан', 'нам', 'ьон', 'дан', 'дин', 'ден', 'тан'])) &&
+                (in_array($twoLetters, ['ад', 'йн', 'мм', 'ам', 'ан', 'ин', 'он', 'ен'])
+                    || in_array($lastLetter, ['с', 'т', 'р', 'г', 'в', 'л', 'м', 'к', 'х']))
             ) {
                 $listsLetter[] = 'а';
-            }
-            if ($tlThree != 'ь' && in_array($treeLetters, ['вец'])) {
+            } elseif ($tlThree != 'ь' && in_array($treeLetters, ['вец'])) {
                 unset($listsLetter[count($listsLetter) - 2]);
                 $listsLetter[] = 'а';
             }
-            $this->Accusative = implode('', $listsLetter);
         } elseif ($lastLetter == 'ь') {
+            $items_consonantLetters = $this->_consonantLetters;
+            unset($items_consonantLetters[array_search('л', $this->_consonantLetters)]);
             $listsCL = array_map(function ($item) use ($lastLetter) {
                 return $item . $lastLetter;
-            }, $this->_consonantLetters);
-            if (!in_array($twoLetters, $listsCL)) {
+            }, $items_consonantLetters);
+
+            if (in_array($twoLetters, $listsCL)) {
                 $listsLetter[count($listsLetter) - 1] = 'я';
             }
-            $this->Accusative = implode('', $listsLetter);
         } elseif (in_array($lastLetter, ['о', 'й', 'е'])) {
             $this->Accusative = implode('', $listsLetter);
-            if (in_array($twoLetters, ['ий'])) {
+            if (in_array($twoLetters, ['ий', 'ай', 'эй'])) {
                 $listsLetter[count($listsLetter) - 1] = 'я';
-                $this->Accusative = implode('', $listsLetter);
             }
         }
 
@@ -257,14 +294,17 @@ class Russian extends Declension
      */
     protected function setInstrumental()
     {
-        $words = explode(' ', $this->_wordInput);
-        if (count($words) > 1) {
-            for ($wordSet = [], $i = 0; $i < count($words); $i++) {
-                $wordSet[] = $this->setDeclareWordInstrumental(\Letter::str_split_utf8($words[$i]));
-            }
-            $this->Instrumental = implode(' ', $wordSet);
+        if (count($this->_words) > 1) {
+            $getThis = &$this;
+            $this->Instrumental = implode($this->DelimiterInput, array_map(function ($item) use ($getThis) {
+                return $getThis->setDeclareWordInstrumental($item);
+            }, $this->_words));
         } else {
-            $this->Instrumental = $this->setDeclareWordInstrumental($this->_listsLetters);
+            if($this->DelimiterInput != ' ') {
+                $this->Instrumental = $this->setDeclareWordInstrumental($this->_words[0]) . $this->DelimiterInput;
+            } else {
+                $this->Instrumental = $this->setDeclareWordInstrumental($this->_words[0]);
+            }
         }
     }
 
@@ -274,39 +314,45 @@ class Russian extends Declension
         $twoLetters = implode('', [$listsLetter[count($listsLetter) - 2], $lastLetter]);
         $threeLetters = [];
         $tlThree = null;
-        if(isset($listsLetter[count($listsLetter) - 3])) {
-            $threeLetters = implode('', [$listsLetter[count($listsLetter) - 3], $twoLetters]);
+        if (isset($listsLetter[count($listsLetter) - 3])) {
             $tlThree = $listsLetter[count($listsLetter) - 3];
+            $threeLetters = implode('', [$tlThree, $twoLetters]);
         }
 
         $fourLetters = [];
-        if(isset($listsLetter[count($listsLetter) - 4])) {
+        if (isset($listsLetter[count($listsLetter) - 4])) {
             $fourLetters = implode('', [$listsLetter[count($listsLetter) - 4], $threeLetters]);
         }
 
-        if(in_array($twoLetters, ['би'])) {
+        if (in_array($twoLetters, ['би'])) {
             return implode('', $listsLetter);
         }
         if (in_array($lastLetter, ['а', 'я'])) {
-            if ($lastLetter == 'а') {
+            if(in_array($twoLetters, ['уа'])) {
+                array_pop($listsLetter);
+                $listsLetter[count($listsLetter) - 1] = 'ой';
+            } elseif ($lastLetter == 'а') {
                 if (in_array($twoLetters, ['жа']) && !in_array($fourLetters, ['уджа'])) {
                     $listsLetter[count($listsLetter) - 1] = 'ей';
                 } else {
                     $listsLetter[count($listsLetter) - 1] = 'ой';
                 }
-            }
-            if ($lastLetter == 'я') {
+            } elseif (in_array($twoLetters, ['ья'])) {
+                $listsLetter[] = 'ми';
+            } elseif ($lastLetter == 'я') {
                 $listsLetter[count($listsLetter) - 1] = 'ей';
             }
 
         } elseif ($lastLetter != 'й' && in_array($lastLetter, $this->_consonantLetters)) {
-            if ($tlThree != 'ь' && in_array($twoLetters, ['ет', 'ец'])) {
+            if ($tlThree != 'ь' && in_array($twoLetters, ['ет', 'ец']) && !in_array($threeLetters, ['лет'])) {
                 unset($listsLetter[count($listsLetter) - 2]);
             }
             if (in_array($threeLetters, ['вец'])) {
                 array_push($listsLetter, 'ем');
             } else {
-                if ((in_array($lastLetter, ['в']) || in_array($twoLetters, ['ин'])) && !in_array($threeLetters, ['дин'])) {
+
+                if ((in_array($lastLetter, ['в']) || in_array($twoLetters, ['ин']))
+                    && (!in_array($threeLetters, ['дин']) && !in_array($twoLetters, ['дж']))) {
                     array_push($listsLetter, 'ым');
                 } else {
                     array_push($listsLetter, 'ом');
@@ -318,7 +364,7 @@ class Russian extends Declension
             $listsCL = array_map(function ($item) use ($lastLetter) {
                 return $item . $lastLetter;
             }, $items_consonantLetters);
-            if (in_array($twoLetters, $listsCL)) {
+            if (in_array($twoLetters, $listsCL) || in_array($threeLetters, ['ель'])) {
                 array_push($listsLetter, 'ю');
             } else {
                 $listsLetter[count($listsLetter) - 1] = 'ем';
@@ -326,14 +372,16 @@ class Russian extends Declension
 
         } elseif (in_array($lastLetter, ['о', 'й', 'е', 'и'])) {
 
-            if (in_array($twoLetters, ['ло'])) {
+            if (in_array($twoLetters, ['ло', 'ве'])) {
                 $listsLetter[count($listsLetter) - 1] = 'ом';
-            } elseif (in_array($twoLetters, ['ий', 'ле', 'ие'])) {
+            } elseif (in_array($twoLetters, ['ые']) || in_array($threeLetters, ['кие'])) {
+                $listsLetter[count($listsLetter) - 1] = 'ми';
+            } elseif (in_array($twoLetters, ['ий', 'ле', 'ие', 'ай', 'эй'])) {
                 $listsLetter[count($listsLetter) - 1] = 'ем';
+            } elseif (in_array($twoLetters, ['ии', 'ни'])) {
+                $listsLetter[count($listsLetter) - 1] = 'ями';
             } elseif (in_array($lastLetter, ['и'])) {
                 $listsLetter[count($listsLetter) - 1] = 'ами';
-            } elseif (in_array($twoLetters, ['ые'])) {
-                $listsLetter[count($listsLetter) - 1] = 'ми';
             } elseif (in_array($twoLetters, ['ый'])) {
                 $listsLetter[count($listsLetter) - 1] = 'м';
             } elseif (in_array($lastLetter, ['е']) && !in_array($twoLetters, ['ме', 'че'])) {
@@ -350,14 +398,18 @@ class Russian extends Declension
      */
     protected function setPrepositional()
     {
-        $words = explode(' ', $this->_wordInput);
-        if (count($words) > 1) {
-            for ($wordSet = [], $i = 0; $i < count($words); $i++) {
-                $wordSet[] = $this->setDeclareWordPrepositional(\Letter::str_split_utf8($words[$i]), $i);
-            }
-            $this->Prepositional = implode(' ', $wordSet);
+        if (count($this->_words) > 1) {
+            $getThis = &$this;
+            $wordCount = 0;
+            $this->Prepositional = implode($this->DelimiterInput, array_map(function ($item) use ($getThis, &$wordCount) {
+                return $getThis->setDeclareWordPrepositional($item, $wordCount++);
+            }, $this->_words));
         } else {
-            $this->Prepositional = $this->setDeclareWordPrepositional($this->_listsLetters);
+            if($this->DelimiterInput != ' ') {
+                $this->Prepositional = $this->setDeclareWordPrepositional($this->_words[0]) . $this->DelimiterInput;
+            } else {
+                $this->Prepositional = $this->setDeclareWordPrepositional($this->_words[0]);
+            }
         }
     }
 
@@ -367,15 +419,17 @@ class Russian extends Declension
         $twoLetters = implode('', [$listsLetter[count($listsLetter) - 2], $lastLetter]);
         $firstLetter = strtolower($listsLetter[0]);
         $tlThree = null;
-        if(isset($listsLetter[count($listsLetter) - 3])) {
+        $threeLetters = null;
+        if (isset($listsLetter[count($listsLetter) - 3])) {
             $tlThree = $listsLetter[count($listsLetter) - 3];
+            $threeLetters = implode('', [$tlThree, $twoLetters]);
         }
 
 
-        if(in_array($twoLetters, ['би'])) {
+        if (in_array($twoLetters, ['би'])) {
             if ($wordCount == 0) {
                 array_unshift($listsLetter, ' ');
-                if (in_array($firstLetter, ['и', 'И', 'А', 'а', 'Э', 'э'])) {
+                if (in_array($firstLetter, ['и', 'И', 'А', 'а', 'Э', 'э', 'о', 'О'])) {
                     array_unshift($listsLetter, 'об');
                 } else {
                     array_unshift($listsLetter, 'о');
@@ -384,18 +438,23 @@ class Russian extends Declension
             return implode('', $listsLetter);
         }
         if (in_array($lastLetter, ['а', 'я'])) {
-            if ($lastLetter == 'а') {
+            if(in_array($twoLetters, ['уа'])) {
+                array_pop($listsLetter);
+                $listsLetter[count($listsLetter) - 1] = 'е';
+            } elseif ($lastLetter == 'а') {
                 $listsLetter[count($listsLetter) - 1] = 'е';
             }
             if ($lastLetter == 'я') {
                 if ($twoLetters == 'ля') {
                     $listsLetter[count($listsLetter) - 1] = 'е';
+                } elseif (in_array($twoLetters, ['ья'])) {
+                    $listsLetter[] = 'х';
                 } else {
                     $listsLetter[count($listsLetter) - 1] = 'и';
                 }
             }
         } elseif ($lastLetter != 'й' && in_array($lastLetter, $this->_consonantLetters)) {
-            if ($tlThree != 'ь' && in_array($twoLetters, ['ет', 'ец'])) {
+            if ($tlThree != 'ь' && in_array($twoLetters, ['ет', 'ец']) && !in_array($threeLetters, ['лет'])) {
                 unset($listsLetter[count($listsLetter) - 2]);
             }
 
@@ -406,19 +465,21 @@ class Russian extends Declension
             $listsCL = array_map(function ($item) use ($lastLetter) {
                 return $item . $lastLetter;
             }, $items_consonantLetters);
-            if (in_array($twoLetters, $listsCL)) {
+            if (in_array($twoLetters, $listsCL) || in_array($threeLetters, ['ель'])) {
                 $listsLetter[count($listsLetter) - 1] = 'и';
             } else {
                 $listsLetter[count($listsLetter) - 1] = 'е';
             }
 
         } elseif (in_array($lastLetter, ['о', 'й', 'е', 'и'])) {
-            if (in_array($twoLetters, ['ло', 'ле'])) {
+            if (in_array($twoLetters, ['ло', 'ле', 'ай', 'эй', 'ве'])) {
                 $listsLetter[count($listsLetter) - 1] = 'е';
+            } elseif ((in_array($lastLetter, ['е']) || in_array($threeLetters, ['кие'])) && !in_array($twoLetters, ['ее', 'ме', 'че', 'ий'])) {
+                $listsLetter[count($listsLetter) - 1] = 'х';
             } elseif (in_array($twoLetters, ['ий', 'ие'])) {
                 $listsLetter[count($listsLetter) - 1] = 'и';
-            } elseif (in_array($lastLetter, ['е']) && !in_array($twoLetters, ['ее', 'ме', 'че'])) {
-                $listsLetter[count($listsLetter) - 1] = 'х';
+            } elseif (in_array($twoLetters, ['ии', 'ни'])) {
+                $listsLetter[count($listsLetter) - 1] = 'ях';
             } elseif (in_array($lastLetter, ['и'])) {
                 $listsLetter[count($listsLetter) - 1] = 'ах';
             } elseif (in_array($lastLetter, ['й']) && !in_array($twoLetters, ['эй'])) {
@@ -429,7 +490,7 @@ class Russian extends Declension
 
         if ($wordCount == 0) {
             array_unshift($listsLetter, ' ');
-            if (in_array($firstLetter, ['и', 'И', 'А', 'а', 'Э', 'э'])) {
+            if (in_array($firstLetter, ['и', 'И', 'А', 'а', 'Э', 'э', 'о', 'О'])) {
                 array_unshift($listsLetter, 'об');
             } else {
                 array_unshift($listsLetter, 'о');
@@ -444,5 +505,44 @@ class Russian extends Declension
     protected function setVocative()
     {
         $this->Vocative = null;
+    }
+
+    /**
+     * @return array
+     */
+    protected function getArraysLists()
+    {
+        $words = explode(' ', $this->_wordInput);
+        $wordsDelimiter = explode(',', $this->_wordInput);
+        $wordsDelimiterRe = explode('-', $this->_wordInput);
+
+        if (count($wordsDelimiterRe) > 1) {
+            $listsFirstLetter = \Letter::str_split_utf8($wordsDelimiterRe[0]);
+            $twoEndLetters = implode('', [$listsFirstLetter[count($listsFirstLetter) - 2], $listsFirstLetter[count($listsFirstLetter) - 1]]);
+            if(
+                in_array(implode('', [$listsFirstLetter[0], $listsFirstLetter[1]]), ['ай', 'Ай'])
+                && !in_array($listsFirstLetter[count($listsFirstLetter) - 1], ['о',  'и'])
+                && in_array($twoEndLetters, ['ва', 'он'])
+            ) {
+                $this->DelimiterInput = '-' . $wordsDelimiterRe[1];
+                return [$listsFirstLetter];
+            }
+        }
+
+        if (count($wordsDelimiter) > 1) {
+            $getter = $this->mapLetters($wordsDelimiter);
+            if (count($getter) == 1) {
+                return $getter;
+            } else {
+                $this->DelimiterInput = ',' . implode('', array_pop($getter));
+                return [$getter[0]];
+            }
+        }
+
+
+        if (count($words) > 1) {
+            return $this->mapLetters($words);
+        }
+        return [$this->_listsLetters];
     }
 }

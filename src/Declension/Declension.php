@@ -62,12 +62,19 @@ abstract class Declension
      * @var string
      */
     protected $Vocative;
+    /**
+     * @var string
+     */
+    protected $DelimiterInput = ' ';
+    protected $_letterExclude = [];
+    protected $_words = [];
 
     public function __construct($wordInput = null)
     {
         $this->_wordInput = $wordInput;
         if (!empty($this->_wordInput)) {
             $this->_listsLetters = \Letter::str_split_utf8($this->_wordInput);
+            $this->_words = $this->getArraysLists();
             $this->setNominative();
             $this->setGenitive();
             $this->setDative();
@@ -187,13 +194,46 @@ abstract class Declension
      */
     abstract protected function setVocative();
 
+    /**
+     * @return array
+     */
+    abstract protected function getArraysLists();
+
+    /**
+     * @param array $items
+     * @return  array
+     */
+    protected function mapLetters($items)
+    {
+        $ex = $this->_letterExclude;
+        $delimeter = [];
+        $returnArray = array_filter(array_map(function ($item) use ($ex, &$delimeter) {
+            if(!in_array($item, $ex)) {
+                return \Letter::str_split_utf8($item);
+            } else {
+                if(!array_search($item, $delimeter)) {
+                    array_push($delimeter, $item);
+                }
+                return false;
+            }
+        }, $items), function($item) {
+            return $item != false;
+        });
+
+        if(count($delimeter) > 0) {
+            $this->DelimiterInput .= implode(' ', $delimeter);
+        }
+
+        return $returnArray;
+    }
+
     public function getResult()
     {
         return [
             'Nominative' => $this->Nominative,
             'Genitive' => $this->Genitive,
             'Dative' => $this->Dative,
-            'Accusative' => $this->Accusative,
+//            'Accusative' => $this->Accusative,
             'Instrumental' => $this->Instrumental,
             'Prepositional' => $this->Prepositional
         ];

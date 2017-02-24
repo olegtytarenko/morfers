@@ -73,4 +73,12 @@ class Ukranian extends Declension
     {
         // TODO: Implement setVocative() method.
     }
+
+    /**
+     * @return array
+     */
+    protected function getArraysLists()
+    {
+        // TODO: Implement getArraysLists() method.
+    }
 }
