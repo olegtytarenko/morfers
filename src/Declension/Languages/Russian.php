@@ -12,6 +12,8 @@ use Declension\Declension;
  */
 class Russian extends Declension
 {
+    protected $_langCode = 'ru';
+
     private $_consonantLetters = [
         'б', 'в', 'г', 'д',
         'ж', 'з', 'й', 'к',

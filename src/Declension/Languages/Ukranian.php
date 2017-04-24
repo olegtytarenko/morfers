@@ -12,6 +12,8 @@ use Declension\Declension;
 class Ukranian extends Declension
 {
 
+   protected $_langCode = 'uk';
+
     /**
      * Именительный - RU    <br>
      * Називний - UA
@@ -23,11 +25,27 @@ class Ukranian extends Declension
 
     /**
      * Родительный - RU    <br>
-     * Родовий - UA
+     * Родовий - UA нема кого? чого?
      */
     protected function setGenitive()
     {
-        // TODO: Implement setGenitive() method.
+        $lastCount = count($this->_listsLetters) - 1;
+        $lasChild = $this->_listsLetters[$lastCount];
+        $pervChild = $this->_listsLetters[$lastCount - 1];
+        if(in_array($lasChild, ['а', 'й', 'я'])) {
+            if(in_array($pervChild, ['і'])) {
+                $this->_listsLetters[count($this->_listsLetters) - 1] = 'ю';
+            } else {
+                $this->_listsLetters[count($this->_listsLetters) - 1] = 'у';
+            }
+        } else {
+            if(in_array($pervChild, ['е'])) {
+                unset($this->_listsLetters[$lastCount - 1]);
+            }
+            $this->_listsLetters[] = 'у';
+        }
+
+        $this->Genitive = implode('', $this->_listsLetters);
     }
 
     /**

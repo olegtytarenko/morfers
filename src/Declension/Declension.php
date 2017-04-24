@@ -9,8 +9,11 @@
 namespace Declension;
 
 
+use Symfony\Component\Yaml\Yaml;
+
 abstract class Declension
 {
+    protected $_langCode;
     /**
      * Входящие слово
      * @var null
@@ -68,11 +71,14 @@ abstract class Declension
     protected $DelimiterInput = ' ';
     protected $_letterExclude = [];
     protected $_words = [];
+    protected $_ABC = [];
 
     public function __construct($wordInput = null)
     {
         $this->_wordInput = $wordInput;
         if (!empty($this->_wordInput)) {
+            $this->autoloadConfig();
+            die(print_r($this->_ABC, true));
             $this->_listsLetters = \Letter::str_split_utf8($this->_wordInput);
             $this->_words = $this->getArraysLists();
             $this->setNominative();
@@ -82,6 +88,21 @@ abstract class Declension
             $this->setInstrumental();
             $this->setPrepositional();
         }
+    }
+
+    private function autoloadConfig() {
+        if($this->_langCode) {
+            $lists = implode(DIRECTORY_SEPARATOR, [
+                __DIR__,'..', 'Config', "ABC.{$this->_langCode}.yml"
+            ]);
+            if(realpath($lists)) {
+                $yamlABC = Yaml::parse(file_get_contents(realpath($lists)));
+                if(array_key_exists("abc.{$this->_langCode}", $yamlABC)) {
+                    $this->_ABC = $yamlABC["abc.{$this->_langCode}"];
+                }
+            }
+        }
+
     }
 
     /**
